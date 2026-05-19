@@ -52,7 +52,7 @@ class ReadAcidityNode(Node):
         brightness, _, _ = self.acidity_map[pixel_y, pixel_x]
         pos_ph = 6 + brightness * (3 / 255)
 
-        self.get_logger().info(f'Acidity at given location ({x}, {y}) is {pos_ph}ph')
+        #self.get_logger().info(f'Acidity at given location ({x}, {y}) is {pos_ph}ph')
 
         temp = Float64()
         temp.data = pos_ph
