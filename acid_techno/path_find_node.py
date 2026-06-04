@@ -6,6 +6,7 @@ from . import grid_model
 
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64
+from std_msgs.msg import Float64MultiArray
 from action_msgs.msg import GoalStatus
 
 GRID_SIZE_X = 3.0
@@ -50,12 +51,20 @@ class PathFindNode(Node):
             10
         )
 
+        self.grid_state_pub = self.create_publisher(
+            Float64MultiArray,
+            '/grid_state',
+            10
+        )
+
         self.client = ActionClient(
             self,
             NavigateToPose,
             'navigate_to_pose'
         )
         self.get_logger().info('Initialized action client (Path finding node)')
+
+        self.publish_grid_state()
 
         self.client.wait_for_server()
         self.get_logger().info('Path finding node operational')
@@ -79,8 +88,27 @@ class PathFindNode(Node):
         if not self.grid.location_measured(x, y):
             self.get_logger().info(f"Taken measurement at {x}, {y} of ph: {self.latest_ph}")
             self.grid.set_sample(x, y, self.latest_ph)
+            self.publish_grid_state()
 
         self.send_goal()
+
+    def publish_grid_state(self):
+        msg = Float64MultiArray()
+        rows = len(self.grid.grid)
+        cols = len(self.grid.grid[0]) if rows > 0 else 0
+        data = [float(rows), float(cols)]
+
+        for row in self.grid.grid:
+            for square in row:
+                if not square.accessible:
+                    data.append(-2.0)
+                elif not square.measured:
+                    data.append(-1.0)
+                else:
+                    data.append(float(square.ph_sample))
+
+        msg.data = data
+        self.grid_state_pub.publish(msg)
 
     def send_goal(self):
         if not self.odom_published or not self.ph_published or self.scan_finished:
@@ -125,11 +153,13 @@ class PathFindNode(Node):
             self.get_logger().info('Navigation complete')
             if not self.grid.location_measured(self.current_goal[0], self.current_goal[1]):
                 self.grid.mark_location_unreachable(self.current_goal[0], self.current_goal[1])
+                self.publish_grid_state()
 
 
         elif status == GoalStatus.STATUS_ABORTED:
             self.get_logger().warn(f"Could not reach: x: {self.current_goal[0]}, y: {self.current_goal[1]}")
             self.grid.mark_location_unreachable(self.current_goal[0], self.current_goal[1])
+            self.publish_grid_state()
 
         self.goal_active = False
         self.send_goal()
