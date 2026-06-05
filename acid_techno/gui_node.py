@@ -325,44 +325,34 @@ class MappingWindow(QMainWindow):
         assert self.node.grid_state is not None
 
         extent = grid_extent(self.node.grid_state.rows, self.node.grid_state.cols)
-        measured_values = np.full((self.node.grid_state.rows, self.node.grid_state.cols), np.nan, dtype=float)
-        overlay_values = np.full((self.node.grid_state.rows, self.node.grid_state.cols), np.nan, dtype=float)
+        status_values = np.zeros((self.node.grid_state.rows, self.node.grid_state.cols), dtype=float)
 
         measured_count = 0
         for row in range(self.node.grid_state.rows):
             for col in range(self.node.grid_state.cols):
                 value = self.node.grid_state.values[row, col]
                 if value == -2.0:
-                    overlay_values[row, col] = 1.0
+                    status_values[row, col] = 2.0
                 elif value == -1.0:
-                    overlay_values[row, col] = 0.0
+                    status_values[row, col] = 0.0
                 elif PH_MIN <= value <= PH_MAX:
-                    measured_values[row, col] = value
+                    status_values[row, col] = 1.0
                     measured_count += 1
 
-            self.grid_status_label.setText(f'Grid map status: measured cells {measured_count}')
+        self.grid_status_label.setText(f'Grid map status: measured cells {measured_count}')
 
-        ph_image = axis.imshow(
-            measured_values,
-            extent=extent,
-            origin='lower',
-            cmap='viridis',
-            vmin=PH_MIN,
-            vmax=PH_MAX,
-            aspect='equal',
-        )
-
-        overlay_cmap = ListedColormap([
-            (0.85, 0.85, 0.85, 0.45),
-            (0.75, 0.10, 0.10, 0.65),
+        status_cmap = ListedColormap([
+            (0.85, 0.85, 0.85, 1.0),  # unmeasured
+            (0.40, 0.40, 0.40, 1.0),  # measured
+            (0.0, 0.0, 0.0, 1.0),     # unreachable
         ])
         axis.imshow(
-            overlay_values,
+            status_values,
             extent=extent,
             origin='lower',
-            cmap=overlay_cmap,
+            cmap=status_cmap,
             vmin=-0.5,
-            vmax=1.5,
+            vmax=2.5,
             aspect='equal',
         )
 
