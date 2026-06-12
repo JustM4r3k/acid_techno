@@ -1,3 +1,4 @@
+import math
 import random
 
 import rclpy
@@ -6,37 +7,44 @@ from std_msgs.msg import Bool
 from std_msgs.msg import Float64
 
 
+INITIAL_TEMPERATURE = 20.0
+TARGET_TEMPERATURE = 10.0
+OSCILLATION_AMPLITUDE = 2.0
+OSCILLATION_PERIOD_SECONDS = 30.0
+TEMPERATURE_TRACKING_GAIN = 0.18
+TEMPERATURE_NOISE_RANGE = 0.08
+MIN_TEMPERATURE = 0.0
+MAX_TEMPERATURE = 40.0
+TIMER_PERIOD_SECONDS = 1.0
+
+
 class TemperatureNode(Node):
     def __init__(self):
         super().__init__('temperature_node')
 
-        self.ambient_temperature = 0.0
-        self.target_temperature = 10.0
-        self.hysteresis = 2
-        self.heating_rate = 0.4
-        self.cooling_rate = 0.09
-        self.temperature = 20.0
+        self.temperature = INITIAL_TEMPERATURE
         self.heater_on = False
+        self.elapsed_time = 0.0
 
         self.temperature_pub = self.create_publisher(Float64, '/temperature', 10)
         self.heater_pub = self.create_publisher(Bool, '/heater_on', 10)
-        self.timer = self.create_timer(1.0, self.timer_callback)
+        self.timer = self.create_timer(TIMER_PERIOD_SECONDS, self.timer_callback)
 
         self.get_logger().info('Temperature node operational')
 
     def timer_callback(self):
-        if self.heater_on and self.temperature >= self.target_temperature + self.hysteresis:
-            self.heater_on = False
-        elif (not self.heater_on) and self.temperature <= self.target_temperature - self.hysteresis:
-            self.heater_on = True
+        self.elapsed_time += TIMER_PERIOD_SECONDS
 
-        if self.heater_on:
-            self.temperature += self.heating_rate
-        else:
-            self.temperature -= max(0.0, self.temperature - self.ambient_temperature) * self.cooling_rate
+        oscillation = OSCILLATION_AMPLITUDE * math.sin(
+            2.0 * math.pi * self.elapsed_time / OSCILLATION_PERIOD_SECONDS
+        )
+        desired_temperature = TARGET_TEMPERATURE + oscillation
 
-        self.temperature += random.uniform(-0.03, 0.03)
-        self.temperature = max(15.0, min(40.0, self.temperature))
+        self.temperature += (desired_temperature - self.temperature) * TEMPERATURE_TRACKING_GAIN
+        self.temperature += random.uniform(-TEMPERATURE_NOISE_RANGE, TEMPERATURE_NOISE_RANGE)
+        self.temperature = max(MIN_TEMPERATURE, min(MAX_TEMPERATURE, self.temperature))
+
+        self.heater_on = self.temperature < desired_temperature
 
         temperature_msg = Float64()
         temperature_msg.data = float(self.temperature)

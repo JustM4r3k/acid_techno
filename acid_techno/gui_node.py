@@ -40,6 +40,8 @@ GRID_SIZE_X = 3.0
 GRID_SIZE_Y = 3.0
 PH_MIN = 6.0
 PH_MAX = 9.0
+TEMPERATURE_GRAPH_Y_MIN = 0.0
+TEMPERATURE_GRAPH_Y_MAX = 20.0
 
 
 @dataclass
@@ -546,7 +548,7 @@ class MappingWindow(QMainWindow):
         axis.set_title('Temperature over time')
         axis.set_xlabel('Sample #')
         axis.set_ylabel('Temperature (°C)')
-        axis.set_ylim(15.0, 40.0)
+        axis.set_ylim(TEMPERATURE_GRAPH_Y_MIN, TEMPERATURE_GRAPH_Y_MAX)
         axis.grid(which='major', color='0.85', linestyle='-', linewidth=0.8)
 
         if not self.node.temperature_samples:
