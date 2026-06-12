@@ -10,9 +10,9 @@ class TemperatureNode(Node):
     def __init__(self):
         super().__init__('temperature_node')
 
-        self.ambient_temperature = 20.0
+        self.ambient_temperature = 0.0
         self.target_temperature = 10.0
-        self.hysteresis = 1
+        self.hysteresis = 2
         self.heating_rate = 0.4
         self.cooling_rate = 0.09
         self.temperature = 20.0
