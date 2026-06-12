@@ -14,7 +14,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
     ],
-    install_requires=['setuptools', 'numpy', 'matplotlib', 'scipy', 'PySide6'],
+    install_requires=['setuptools', 'numpy', 'matplotlib', 'scipy', 'PyQt5'],
     zip_safe=True,
     maintainer='Arnas Biesevicius',
     maintainer_email='a.biesevicius@student.tue.nl',
@@ -31,7 +31,8 @@ setup(
             'gui_node = acid_techno.gui_node:main',
             'navigation_node = acid_techno.navigation_node:main',
             'read_acidity_node = acid_techno.read_acidity_node:main',
-            'corrected_odom_node = acid_techno.corrected_odom_node:main'
+            'corrected_odom_node = acid_techno.corrected_odom_node:main',
+            'temperature_node = acid_techno.temperature_node:main',
         ],
     },
 )
