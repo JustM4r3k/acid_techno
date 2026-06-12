@@ -11,12 +11,12 @@ class TemperatureNode(Node):
         super().__init__('temperature_node')
 
         self.ambient_temperature = 20.0
-        self.target_temperature = 30.0
-        self.hysteresis = 0.5
-        self.heating_rate = 0.3
-        self.cooling_rate = 0.05
+        self.target_temperature = 10.0
+        self.hysteresis = 1
+        self.heating_rate = 0.4
+        self.cooling_rate = 0.09
         self.temperature = 20.0
-        self.heater_on = True
+        self.heater_on = False
 
         self.temperature_pub = self.create_publisher(Float64, '/temperature', 10)
         self.heater_pub = self.create_publisher(Bool, '/heater_on', 10)
